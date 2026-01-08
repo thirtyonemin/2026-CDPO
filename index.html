@@ -86,6 +86,28 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
+	/* ✨ 특별한 날(공연 등) 뱃지 스타일 */
+	.day.special-day {
+    	border: 2px solid #ffdc2e !important; /* 테두리 색상 (노란색) */
+    	z-index: 5;
+	}
+
+	/* 뱃지 디자인 (왼쪽 상단에 위치) */
+	.day.special-day::before {
+    	content: attr(data-badge); /* ✨ 데이터에 적은 글자를 그대로 가져옴 */
+    	position: absolute;
+    	top: -6px; 
+    	right: -6px;
+    	background-color: #ffdc2e; /* 뱃지 배경색 */
+    	color: white;
+    	font-size: 10px;
+    	padding: 2px 6px;
+    	border-radius: 10px;
+    	font-weight: bold;
+    	box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    	z-index: 10;
+	}
+
         .date-num { font-size: 11px; color: var(--text-secondary); padding: 4px 6px; text-align: left; font-weight: bold; }
         .is-holiday .date-num, .is-sunday .date-num { color: var(--text-sunday); }
 
@@ -184,7 +206,15 @@
 
     const events = [
         { title: "1학기 개강", start: "2026-3-3", end: "2026-3-3", type: 1, desc: "-" },
+        { title: "1학기 중간고사", start: "2026-4-21", end: "2026-4-27", type: 1, desc: "-" },
+        { title: "근로자의 날", start: "2026-5-1", end: "2026-5-1", type: 1, desc: "휴업일" },
+        { title: "1학기 기말고사", start: "2026-6-16", end: "2026-6-22", type: 1, desc: "-" },
+        { title: "2학기 개강", start: "2026-9-1", end: "2026-9-1", type: 1, desc: "-" },
+        { title: "개교기념일", start: "2026-9-29", end: "2026-9-29", type: 1, desc: "휴업일" },
+        { title: "2학기 중간고사", start: "2026-10-20", end: "2026-10-26", type: 1, desc: "-" },
+        { title: "2학기 기말고사", start: "2026-12-15", end: "2026-12-21", type: 1, desc: "-" },
 
+        { title: "예1 수강신청", start: "2026-2-12", end: "2026-2-12", type: 2, desc: "-" },
         { title: "본1 0주평", start: "2026-3-9", end: "2026-3-9", type: 2, desc: "-" },
         { title: "모꼬지", start: "2026-3-27", end: "2026-3-27", type: 2, desc: "-" },
         { title: "본1 1주평", start: "2026-3-30", end: "2026-3-30", type: 2, desc: "-" },
@@ -192,29 +222,35 @@
         { title: "본1 2주평", start: "2026-5-18", end: "2026-5-18", type: 2, desc: "-" },
 
         { title: "서울투어", start: "2026-1-17", end: "2026-1-17", type: 3, desc: "18:00<br>테힐림 아트홀 (서울 강남구 논현로159길 20 동방빌딩 4층)" },
-        { title: "동소식 연습", start: "2026-2-7", end: "2026-2-10", type: 3, desc: "14:00~18:00" },
+        { title: "동소식 연습", start: "2026-2-7", end: "2026-2-10", type: 3, desc: "(2/7)~2/10<br>14:00~18:00<br>1층 대강당" },
         { title: "신입생 OT", start: "2026-2-11", end: "2026-2-12", type: 3, desc: "11일 동소식, 12일 신환회" },
-        { title: "개본등신", start: "2026-3-14", end: "2026-3-14", type: 3, desc: "1차:<br>2차:" },
+        { title: "개본등신", start: "2026-3-14", end: "2026-3-14", type: 3, desc: "개총/본진식/등원식/신환회<br><br>1차:<br>2차:" },
         { title: "악소식", start: "2026-3-23", end: "2026-3-23", type: 3, desc: "23일 또는 30일" },
         { title: "악소식", start: "2026-3-30", end: "2026-3-30", type: 3, desc: "23일 또는 30일" },
         { title: "작음 연습", start: "2026-5-11", end: "2026-5-22", type: 3, desc: "-" },
-        { title: "작음", start: "2026-5-23", end: "2026-5-23", type: 3, desc: "-" },
+        { title: "작은음악회", start: "2026-5-23", end: "2026-5-23", type: 3, desc: "-", badge: "작음" },
         { title: "정공 연습", start: "2026-7-6", end: "2026-7-31", type: 3, desc: "-" },
-        { title: "정공", start: "2026-8-1", end: "2026-8-1", type: 3, desc: "-" },
+        { title: "야유회", start: "2026-7-11", end: "2026-7-12", type: 3, desc: "-" },
+        { title: "정기연주회", start: "2026-8-1", end: "2026-8-1", type: 3, desc: "-", badge: "정공" },
 
         { title: "광주투어", start: "2026-2-2", end: "2026-2-10", type: 4, desc: "-" },
         { title: "화이트데이", start: "2026-3-13", end: "2026-3-13", type: 4, desc: "-" },
-        { title: "대관", start: "2026-5-1", end: "2026-5-1", type: 4, desc: "09:00" },
+        { title: "대관", start: "2026-5-1", end: "2026-5-1", type: 4, desc: "남구문화예술회관<br>09:00" },
         { title: "스승의날", start: "2026-5-15", end: "2026-5-15", type: 4, desc: "-" },
 
         { title: "OB 연락", start: "2026-1-19", end: "2026-1-31", type: 5, desc: "1. 개총 일정 안내<br>2. 정공 날짜 안내<br>3. 치아 받을 수 있는지 여부 확인" },
         { title: "대면식 주간", start: "2026-3-4", end: "2026-3-13", type: 5, desc: "-" },
         { title: "OB 연락", start: "2026-4-27", end: "2026-4-30", type: 5, desc: "작음 일정 안내" },
         { title: "OB 연락", start: "2026-6-29", end: "2026-7-5", type: 5, desc: "정공 일정 안내" },
+        { title: "팜플렛 발송", start: "2026-7-17", end: "2026-7-17", type: 5, desc: "-" },
+        { title: "2026 공지 톡방 오픈", start: "2026-1-16", end: "2026-1-16", type: 5, desc: "-" },
 
-        { title: "2Q 회비", start: "2026-2-17", end: "2026-2-21", type: 7, desc: "개본등신<br>본과 11, 예과 8" },
-        { title: "3Q 회비", start: "2026-4-27", end: "2026-4-30", type: 7, desc: "작음<br>본과 8, 예과 7" },
-        { title: "4Q 회비", start: "2026-6-29", end: "2026-7-3", type: 7, desc: "정공<br>본과 16, 예과 14" }
+        { title: "OT 식사 참여자 조사", start: "2026-1-16", end: "2026-1-23", type: 6, desc: "2/11 점심<br>2/12 점심<br>2/12 저녁 1차<br>2/12 저녁 2차" },
+        { title: "악보 필요자 조사", start: "2026-2-1", end: "2026-2-4", type: 6, desc: "동소식 악보 없는 사람 조사" },
+
+        { title: "1Q 회비", start: "2026-2-17", end: "2026-2-21", type: 7, desc: "개본등신<br>본과 11, 예과 8" },
+        { title: "2Q 회비", start: "2026-4-27", end: "2026-4-30", type: 7, desc: "작음<br>본과 8, 예과 7" },
+        { title: "3Q 회비", start: "2026-6-29", end: "2026-7-3", type: 7, desc: "정공<br>본과 16, 예과 14" }
     ];
 
     const categories = { 1: "학사일정", 2: "참고일정", 3: "행사", 4: "업무", 5: "업무", 6: "준비", 7: "회비" };
@@ -288,13 +324,21 @@
                     else if (currentObj.getTime() === e.getTime()) barClass += ' bar-end';
                     barsHtml += `<div class="${barClass}"></div>`;
                 });
+	// 해당 날짜에 'badge' 속성이 있는 일정이 있는지 확인
+            	const specialEvent = todaysEvents.find(evt => evt.badge);
+            	let badgeAttr = ""; 
+            
+            	if (specialEvent) {
+                	dayClass += ' special-day';       // CSS 클래스 추가
+                	badgeAttr = `data-badge="${specialEvent.badge}"`; // 뱃지 내용 주입
+            	}
+	html += `<div class="${dayClass}" id="day-${dateStr}" ${badgeAttr} onclick="showDetail('${dateStr}', this)">
+                        	<div class="date-num">${d}</div>
+                        	${barsHtml}
+                    	</div>`;
+        	}
+        	html += `</div>`;
 
-                html += `<div class="${dayClass}" id="day-${dateStr}" onclick="showDetail('${dateStr}', this)">
-                            <div class="date-num">${d}</div>
-                            ${barsHtml}
-                        </div>`;
-            }
-            html += `</div>`;
             monthDiv.innerHTML = html;
             calendarGrid.appendChild(monthDiv);
         }
