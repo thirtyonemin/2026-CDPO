@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎻 2026 관현악반 연간일정</title>
+    
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <style>
+        :root {
+            /* 컬러 팔레트 */
+            --c-type-1: #e9efef; --c-type-2: #ecd5e3; --c-type-3: #fcb9aa; 
+            --c-type-4: #f7d9c4; --c-type-5: #c6def1; --c-type-6: #c9e4de; 
+	    --c-type-7: #faedcb;
+            /* 테마 색상 */
+            --bg-main: #fdfdfd; --bg-calendar: #ffffff; --bg-panel: #fbfbfb;
+            --text-primary: #2d3436; --text-secondary: #636e72; --text-sunday: #e17055;
+            --border-color: #eee; --day-hover: #f1f2f6; --selected-border: #6c5ce7;
+            --dday-bg: #6c5ce7; --dday-text: #fff;
+            
+            /* 🔥 오늘 날짜 하이라이트 색상 */
+            --today-border: #ff7675;
+            --today-bg: rgba(255, 118, 117, 0.05);
+            --today-badge: #ff7675;
+        }
+
+        body.dark-mode {
+            --bg-main: #1e272e; --bg-calendar: #2f3640; --bg-panel: #353b48;
+            --text-primary: #f5f6fa; --text-secondary: #dcdde1; --text-sunday: #ff7675;
+            --border-color: #4b6584; --day-hover: #3d4a58; --selected-border: #a29bfe;
+            --dday-bg: #a29bfe; --dday-text: #2f3640;
+            --today-border: #fab1a0; --today-bg: rgba(250, 177, 160, 0.1); --today-badge: #fab1a0;
+        }
+
+        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; background-color: var(--bg-main); height: 100vh; overflow: hidden; color: var(--text-primary); transition: all 0.3s; }
+        .container { display: flex; height: 100vh; }
+        .calendar-area { flex: 7; padding: 25px; overflow-y: auto; background: var(--bg-calendar); }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+        .title-group { display: flex; align-items: center; gap: 15px; }
+        .header-title { font-size: 24px; font-weight: 800; margin: 0; color: var(--text-primary); }
+        
+        .d-day-badge { background-color: var(--dday-bg); color: var(--dday-text); padding: 6px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: bounce 2s infinite; display: none; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+        .controls { display: flex; gap: 10px; align-items: center; }
+        .search-box { padding: 8px 12px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); outline: none; width: 180px; }
+        .theme-btn { background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; }
+
+        .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .legend-item { display: flex; align-items: center; background: var(--bg-panel); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-secondary); transition: all 0.2s; user-select: none; }
+        .legend-item:hover { transform: translateY(-1px); }
+        .legend-item.disabled { opacity: 0.4; filter: grayscale(80%); }
+        .dot { width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; }
+
+        .year-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px; padding-bottom: 50px; }
+        .month-box { border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; background: var(--bg-calendar); box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .month-name { text-align: center; font-weight: 800; margin-bottom: 15px; color: var(--text-secondary); }
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; gap: 3px; }
+        .day-header { color: var(--text-secondary); opacity: 0.7; font-size: 11px; margin-bottom: 8px; font-weight: bold; }
+        .day-header.sun { color: var(--text-sunday); opacity: 1; }
+
+        .day { height: 65px; border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer; position: relative; display: flex; flex-direction: column; background: var(--bg-calendar); }
+        .day:hover { background-color: var(--day-hover); z-index: 5; }
+        .day.selected { border: 2px solid var(--selected-border) !important; z-index: 10; }
+        .day.search-matched { background-color: rgba(255, 234, 167, 0.5); border: 2px solid var(--c-type-6); }
+
+        /* 🔥 [핵심] 오늘 날짜 스타일 */
+        .day.is-today {
+            border: 2px solid var(--today-border) !important;
+            background-color: var(--today-bg);
+            z-index: 6;
+        }
+        /* TODAY 배지 (우측 상단에 붙음) */
+        .day.is-today::after {
+            content: "TODAY";
+            position: absolute;
+            top: -6px; right: -6px;
+            background-color: var(--today-badge);
+            color: white;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .date-num { font-size: 11px; color: var(--text-secondary); padding: 4px 6px; text-align: left; font-weight: bold; }
+        .is-holiday .date-num, .is-sunday .date-num { color: var(--text-sunday); }
+
+        .event-bar { height: 6px; margin-bottom: 2px; width: 100%; }
+        .bar-start { border-top-left-radius: 4px; border-bottom-left-radius: 4px; margin-left: 2px; width: calc(100% - 2px); }
+        .bar-end { border-top-right-radius: 4px; border-bottom-right-radius: 4px; margin-right: 2px; width: calc(100% - 2px); }
+        .bar-single { border-radius: 4px; margin: 0 2px; width: calc(100% - 4px); }
+        
+        .type-1 { background-color: var(--c-type-1); } .type-2 { background-color: var(--c-type-2); }
+        .type-3 { background-color: var(--c-type-3); } .type-4 { background-color: var(--c-type-4); }
+        .type-5 { background-color: var(--c-type-5); } .type-6 { background-color: var(--c-type-6); }
+	.type-7 { background-color: var(--c-type-7); }
+
+        .detail-panel { flex: 3; padding: 30px; background-color: var(--bg-panel); border-left: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .panel-date { font-size: 26px; font-weight: 900; margin-bottom: 25px; color: var(--text-primary); border-bottom: 3px solid var(--border-color); padding-bottom: 10px; }
+
+        .task-card { padding: 18px; border-radius: 12px; margin-bottom: 15px; background: var(--bg-calendar); border-left: 6px solid #ccc; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .task-card.type-1 { border-left-color: var(--c-type-1); } .task-card.type-2 { border-left-color: var(--c-type-2); }
+        .task-card.type-3 { border-left-color: var(--c-type-3); } .task-card.type-4 { border-left-color: var(--c-type-4); }
+        .task-card.type-5 { border-left-color: var(--c-type-5); } .task-card.type-6 { border-left-color: var(--c-type-6); }
+	.task-card.type-7 { border-left-color: var(--c-type-7); }
+        
+        .holiday-card { padding: 15px; border-radius: 12px; margin-bottom: 15px; background: rgba(255, 118, 117, 0.1); border: 1px solid var(--text-sunday); color: var(--text-sunday); display: flex; align-items: center; gap: 10px; }
+        .holiday-badge { background: var(--text-sunday); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+
+        .tag { display: inline-block; font-size: 10px; padding: 3px 8px; border-radius: 20px; color: #333; margin-bottom: 8px; font-weight: bold; }
+        .tag.type-1 { background-color: var(--c-type-1); } .tag.type-2 { background-color: var(--c-type-2); }
+        .tag.type-3 { background-color: var(--c-type-3); } .tag.type-4 { background-color: var(--c-type-4); }
+        .tag.type-5 { background-color: var(--c-type-5); } .tag.type-6 { background-color: var(--c-type-6); }
+	.tag.type-7 { background-color: var(--c-type-7); }
+
+        .task-title { font-weight: 800; font-size: 16px; display: block; margin-bottom: 5px; }
+        .task-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="calendar-area">
+        <div class="header">
+            <div class="title-group">
+                <h2 class="header-title">🎻 2026 관현악반 연간일정</h2>
+                <div id="dDayBadge" class="d-day-badge"></div>
+            </div>
+            
+            <div class="controls">
+                <input type="text" id="searchInput" class="search-box" placeholder="일정 검색..." onkeyup="filterEvents()">
+                <button class="theme-btn" onclick="toggleDarkMode()" title="다크모드">🌙</button>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item" onclick="toggleCategory(1, this)"><div class="dot type-1"></div>학사일정</div>
+            <div class="legend-item" onclick="toggleCategory(2, this)"><div class="dot type-2"></div>참고일정</div>
+            <div class="legend-item" onclick="toggleCategory(3, this)"><div class="dot type-3"></div>행사</div>
+            <div class="legend-item" onclick="toggleCategory(4, this)"><div class="dot type-4"></div>업무</div>
+            <div class="legend-item" onclick="toggleCategory(5, this)"><div class="dot type-5"></div>업무</div>
+            <div class="legend-item" onclick="toggleCategory(6, this)"><div class="dot type-6"></div>준비</div>
+            <div class="legend-item" onclick="toggleCategory(7, this)"><div class="dot type-7"></div>회비</div>
+        </div>
+
+        <div class="year-grid" id="calendarGrid"></div>
+    </div>
+
+    <div class="detail-panel">
+        <div class="panel-date" id="displayDate">TODAY</div>
+        <div id="taskList">
+            <div style="color:var(--text-secondary); text-align:center; margin-top:50px; font-size:14px;">
+                📅 오늘: <span id="todayText"></span><br><br>
+                날짜를 클릭하거나<br>카테고리를 눌러 필터링해보세요.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // 🌍 실시간 오늘 날짜 가져오기 (PC 시간 기준)
+    // ============================================================
+    const REAL_NOW = new Date(); 
+    
+    // ⚠️ 중요: 이 캘린더는 '2026년' 전용입니다.
+    // 만약 사용자의 PC 연도가 2026년이 아니라면 '오늘' 하이라이트가 안 보일 수 있습니다.
+    // (테스트를 위해 연도를 강제로 2026으로 바꾸고 싶다면 아래 주석을 해제하세요)
+    // const REAL_NOW = new Date(2026, 0, 8); // 2026년 1월 8일로 강제 설정
+
+    const TARGET_YEAR = 2026;
+
+    const holidays2026 = {
+        "2026-1-1": "신정", "2026-2-16": "설날 연휴", "2026-2-17": "설날", "2026-2-18": "설날 연휴",
+        "2026-3-1": "삼일절", "2026-3-2": "대체공휴일", "2026-5-5": "어린이날", "2026-5-24": "부처님오신날",
+        "2026-5-25": "대체공휴일", "2026-6-3": "지방선거", "2026-6-6": "현충일", "2026-8-15": "광복절",
+        "2026-8-17": "대체공휴일", "2026-9-24": "추석 연휴", "2026-9-25": "추석", "2026-9-26": "추석 연휴",
+        "2026-10-3": "개천절", "2026-10-5": "대체공휴일", "2026-10-9": "한글날", "2026-12-25": "성탄절"
+    };
+
+    const events = [
+        { title: "1학기 개강", start: "2026-3-3", end: "2026-3-3", type: 1, desc: "-" },
+
+        { title: "본1 0주평", start: "2026-3-9", end: "2026-3-9", type: 2, desc: "-" },
+        { title: "모꼬지", start: "2026-3-27", end: "2026-3-27", type: 2, desc: "-" },
+        { title: "본1 1주평", start: "2026-3-30", end: "2026-3-30", type: 2, desc: "-" },
+        { title: "본1 해부 중간", start: "2026-4-20", end: "2026-4-20", type: 2, desc: "-" },
+        { title: "본1 2주평", start: "2026-5-18", end: "2026-5-18", type: 2, desc: "-" },
+
+        { title: "서울투어", start: "2026-1-17", end: "2026-1-17", type: 3, desc: "18:00<br>테힐림 아트홀 (서울 강남구 논현로159길 20 동방빌딩 4층)" },
+        { title: "동소식 연습", start: "2026-2-7", end: "2026-2-10", type: 3, desc: "14:00~18:00" },
+        { title: "신입생 OT", start: "2026-2-11", end: "2026-2-12", type: 3, desc: "11일 동소식, 12일 신환회" },
+        { title: "개본등신", start: "2026-3-14", end: "2026-3-14", type: 3, desc: "1차:<br>2차:" },
+        { title: "악소식", start: "2026-3-23", end: "2026-3-23", type: 3, desc: "23일 또는 30일" },
+        { title: "악소식", start: "2026-3-30", end: "2026-3-30", type: 3, desc: "23일 또는 30일" },
+        { title: "작음 연습", start: "2026-5-11", end: "2026-5-22", type: 3, desc: "-" },
+        { title: "작음", start: "2026-5-23", end: "2026-5-23", type: 3, desc: "-" },
+        { title: "정공 연습", start: "2026-7-6", end: "2026-7-31", type: 3, desc: "-" },
+        { title: "정공", start: "2026-8-1", end: "2026-8-1", type: 3, desc: "-" },
+
+        { title: "광주투어", start: "2026-2-2", end: "2026-2-10", type: 4, desc: "-" },
+        { title: "화이트데이", start: "2026-3-13", end: "2026-3-13", type: 4, desc: "-" },
+        { title: "대관", start: "2026-5-1", end: "2026-5-1", type: 4, desc: "09:00" },
+        { title: "스승의날", start: "2026-5-15", end: "2026-5-15", type: 4, desc: "-" },
+
+        { title: "OB 연락", start: "2026-1-19", end: "2026-1-31", type: 5, desc: "1. 개총 일정 안내<br>2. 정공 날짜 안내<br>3. 치아 받을 수 있는지 여부 확인" },
+        { title: "대면식 주간", start: "2026-3-4", end: "2026-3-13", type: 5, desc: "-" },
+        { title: "OB 연락", start: "2026-4-27", end: "2026-4-30", type: 5, desc: "작음 일정 안내" },
+        { title: "OB 연락", start: "2026-6-29", end: "2026-7-5", type: 5, desc: "정공 일정 안내" },
+
+        { title: "2Q 회비", start: "2026-2-17", end: "2026-2-21", type: 7, desc: "개본등신<br>본과 11, 예과 8" },
+        { title: "3Q 회비", start: "2026-4-27", end: "2026-4-30", type: 7, desc: "작음<br>본과 8, 예과 7" },
+        { title: "4Q 회비", start: "2026-6-29", end: "2026-7-3", type: 7, desc: "정공<br>본과 16, 예과 14" }
+    ];
+
+    const categories = { 1: "학사일정", 2: "참고일정", 3: "행사", 4: "업무", 5: "업무", 6: "준비", 7: "회비" };
+    let activeCategories = new Set([1, 2, 3, 4, 5, 6, 7]);
+
+    const calendarGrid = document.getElementById('calendarGrid');
+    const displayDate = document.getElementById('displayDate');
+    const taskList = document.getElementById('taskList');
+    const searchInput = document.getElementById('searchInput');
+    const dDayBadge = document.getElementById('dDayBadge');
+    
+    // 우측 패널에 오늘 날짜 표시
+    document.getElementById('todayText').textContent = `${REAL_NOW.getFullYear()}년 ${REAL_NOW.getMonth()+1}월 ${REAL_NOW.getDate()}일`;
+
+    function parseDate(str) { const [y,m,d] = str.split('-').map(Number); return new Date(y, m-1, d); }
+    function toggleCategory(type, element) {
+        if (activeCategories.has(type)) { activeCategories.delete(type); element.classList.add('disabled'); } 
+        else { activeCategories.add(type); element.classList.remove('disabled'); }
+        renderCalendar();
+    }
+
+    function renderCalendar() {
+        calendarGrid.innerHTML = '';
+        for (let m = 0; m < 12; m++) {
+            const monthDiv = document.createElement('div');
+            monthDiv.className = 'month-box';
+            let html = `<div class="month-name">${m + 1}월</div><div class="days-grid">`;
+            
+            ['일','월','화','수','목','금','토'].forEach((w, idx) => {
+                html += `<div class="day-header ${idx === 0 ? 'sun' : ''}">${w}</div>`;
+            });
+
+            const date = new Date(TARGET_YEAR, m, 1);
+            const firstDay = date.getDay();
+            const lastDate = new Date(TARGET_YEAR, m + 1, 0).getDate();
+
+            for(let i=0; i<firstDay; i++) html += `<div></div>`; 
+
+            for(let d=1; d<=lastDate; d++) {
+                const dateStr = `${TARGET_YEAR}-${m+1}-${d}`;
+                const currentObj = new Date(TARGET_YEAR, m, d);
+                
+                // 1. 공휴일 & 일요일 체크
+                const holidayName = holidays2026[dateStr];
+                let dayClass = 'day';
+                if (currentObj.getDay() === 0) dayClass += ' is-sunday';
+                if (holidayName) dayClass += ' is-holiday';
+
+                // 🔥 2. 오늘 날짜 체크 (연/월/일 모두 일치해야 함)
+                if (TARGET_YEAR === REAL_NOW.getFullYear() && 
+                    m === REAL_NOW.getMonth() && 
+                    d === REAL_NOW.getDate()) {
+                    dayClass += ' is-today';
+                }
+
+                // 3. 일정 필터링
+                const todaysEvents = events.filter(evt => {
+                    if (!activeCategories.has(evt.type)) return false;
+                    const s = parseDate(evt.start);
+                    const e = parseDate(evt.end);
+                    return currentObj >= s && currentObj <= e;
+                });
+
+                let barsHtml = '';
+                todaysEvents.forEach(evt => {
+                    let barClass = `event-bar type-${evt.type}`;
+                    const s = parseDate(evt.start);
+                    const e = parseDate(evt.end);
+                    if (currentObj.getTime() === s.getTime() && currentObj.getTime() === e.getTime()) barClass += ' bar-single';
+                    else if (currentObj.getTime() === s.getTime()) barClass += ' bar-start';
+                    else if (currentObj.getTime() === e.getTime()) barClass += ' bar-end';
+                    barsHtml += `<div class="${barClass}"></div>`;
+                });
+
+                html += `<div class="${dayClass}" id="day-${dateStr}" onclick="showDetail('${dateStr}', this)">
+                            <div class="date-num">${d}</div>
+                            ${barsHtml}
+                        </div>`;
+            }
+            html += `</div>`;
+            monthDiv.innerHTML = html;
+            calendarGrid.appendChild(monthDiv);
+        }
+        if(searchInput.value) filterEvents();
+    }
+
+    function showDetail(dateStr, element) {
+        if(element) {
+            document.querySelectorAll('.day').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+        const [y, m, d] = dateStr.split('-');
+        displayDate.textContent = `${m}월 ${d}일`;
+        let htmlContent = '';
+        if (holidays2026[dateStr]) htmlContent += `<div class="holiday-card"><span class="holiday-badge">공휴일</span><span>${holidays2026[dateStr]}</span></div>`;
+        const currentObj = parseDate(dateStr);
+        const activeEvents = events.filter(evt => currentObj >= parseDate(evt.start) && currentObj <= parseDate(evt.end));
+        if (activeEvents.length > 0) {
+            htmlContent += activeEvents.map(evt => `
+                <div class="task-card type-${evt.type}">
+                    <span class="tag type-${evt.type}">${categories[evt.type]}</span>
+                    <span class="task-title">${evt.title}</span>
+                    <div class="task-desc">${evt.desc}</div>
+                    <div style="font-size:11px; color:var(--text-secondary); margin-top:5px; font-weight:bold;">${evt.start} ~ ${evt.end}</div>
+                </div>
+            `).join('');
+        }
+        if (!htmlContent) htmlContent = `<div style="text-align:center; color:var(--text-secondary); margin-top:20px;">일정이 없습니다.</div>`;
+        taskList.innerHTML = htmlContent;
+    }
+
+    function calculateDday() {
+        const targetTypes = [3, 4]; // 행사, 업무
+        // 과거 일정 제외하고 미래 일정만 필터링 (REAL_NOW 기준)
+        // 단, 시분초 차이로 인한 오류를 막기 위해 REAL_NOW의 시간을 0시로 초기화
+        const todayZero = new Date(REAL_NOW);
+        todayZero.setHours(0,0,0,0);
+
+        const sortedEvents = events
+            .filter(e => targetTypes.includes(e.type))
+            .map(e => ({...e, dateObj: parseDate(e.start)}))
+            .filter(e => e.dateObj >= todayZero)
+            .sort((a, b) => a.dateObj - b.dateObj);
+
+        if (sortedEvents.length > 0) {
+            const nextEvent = sortedEvents[0];
+            const diffTime = nextEvent.dateObj - todayZero;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            let dDayText = diffDays === 0 ? "D-Day" : `D-${diffDays}`;
+            dDayBadge.style.display = "block";
+            dDayBadge.innerHTML = `🔔 다음 일정: ${nextEvent.title} (${dDayText})`;
+        } else {
+            dDayBadge.style.display = "none";
+        }
+    }
+
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+    function filterEvents() {
+        const query = searchInput.value.toLowerCase().trim();
+        document.querySelectorAll('.day').forEach(el => el.classList.remove('search-matched'));
+        if (!query) return;
+        const matchedEvents = events.filter(evt => evt.title.toLowerCase().includes(query) || evt.desc.toLowerCase().includes(query));
+        matchedEvents.forEach(evt => {
+            const start = parseDate(evt.start);
+            const end = parseDate(evt.end);
+            for (let dt = new Date(start); dt <= end; dt.setDate(dt.getDate() + 1)) {
+                const dateKey = `day-${dt.getFullYear()}-${dt.getMonth() + 1}-${dt.getDate()}`;
+                const el = document.getElementById(dateKey);
+                if (el) el.classList.add('search-matched');
+            }
+        });
+        displayDate.textContent = `검색 결과 (${matchedEvents.length}건)`;
+        if (matchedEvents.length > 0) {
+            taskList.innerHTML = matchedEvents.map(evt => `
+                <div class="task-card type-${evt.type}"><span class="tag type-${evt.type}">${categories[evt.type]}</span><span class="task-title">${evt.title}</span><div class="task-desc">${evt.desc}</div><div style="font-size:11px; color:var(--text-secondary); margin-top:5px;">${evt.start} ~ ${evt.end}</div></div>
+            `).join('');
+        } else {
+            taskList.innerHTML = `<div style="text-align:center; color:var(--text-secondary); margin-top:20px;">검색 결과가 없습니다.</div>`;
+        }
+    }
+
+    renderCalendar();
+    calculateDday();
+
+</script>
+
+</body>
+</html>
